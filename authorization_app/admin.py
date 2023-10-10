@@ -1,9 +1,9 @@
+# admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User
 from django.utils.translation import ngettext
 from django.contrib import messages
-
 
 class CustomUserAdmin(UserAdmin):
     list_display = ('username', 'email', 'name', 'surname', 'phone_number', 'is_staff', 'is_active')
@@ -12,7 +12,7 @@ class CustomUserAdmin(UserAdmin):
         (None, {'fields': ('username', 'email', 'password')}),
         ('Personal Info', {'fields': ('name', 'surname', 'phone_number')}),
         ('Permissions', {'fields': ('is_staff', 'is_active')}),
-        ('OTP Info', {'fields': ('otp_secret',)}),  # Добавьте поле OTP Secret
+        ('OTP Info', {'fields': ('otp_secret',)}),
     )
     add_fieldsets = (
         (None, {
@@ -21,7 +21,6 @@ class CustomUserAdmin(UserAdmin):
         ),
     )
     
-
     actions = ['change_password']
 
     def change_password(self, request, queryset):

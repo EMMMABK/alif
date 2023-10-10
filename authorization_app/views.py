@@ -1,3 +1,4 @@
+from django.core.mail import send_mail
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
@@ -10,7 +11,13 @@ from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 import pyotp
 from rest_framework.permissions import IsAuthenticated
-from .serializers import ChangePasswordSerializer
+from .serializers import ChangePasswordSerializer, PasswordResetSerializer
+from .models import User
+from django.core.mail import send_mail
+from django.contrib.auth.tokens import default_token_generator
+from django.urls import reverse
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str 
 
 # Create your views here.
 
@@ -76,5 +83,38 @@ def change_password(request):
         user.set_password(new_password)
         user.save()
         return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def resend_otp(request):
+    return Response({'message': 'OTP code resent successfully'})
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_reset_request(request):
+    serializer = PasswordResetSerializer(data=request.data)
+    if serializer.is_valid():
+        email = serializer.validated_data['email']
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'message': 'User with this email does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+
+        reset_link = reverse('password_reset_confirm', args=[uid, token])
+        send_mail(
+            'Password Reset',
+            reset_link,
+            'noreply@example.com',  # Используйте адрес электронной почты вашего приложения
+            [email],
+            fail_silently=False,
+        )
+        
+        return Response({'message': 'Password reset link sent successfully'})
+    
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
