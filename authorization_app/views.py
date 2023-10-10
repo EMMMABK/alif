@@ -9,6 +9,8 @@ from .serializers import UserSerializer, UserLoginSerializer
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 import pyotp
+from rest_framework.permissions import IsAuthenticated
+from .serializers import ChangePasswordSerializer
 
 # Create your views here.
 
@@ -63,4 +65,16 @@ def send_otp(request):
     user.save()
 
     return Response({'message': 'OTP code sent successfully'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+    if serializer.is_valid():
+        user = request.user
+        new_password = serializer.validated_data['new_password']
+        user.set_password(new_password)
+        user.save()
+        return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
