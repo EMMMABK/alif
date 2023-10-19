@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'authorization_func',
     'rest_framework',
     'news_func',
+    'drf_yasg',
 ]
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
