@@ -26,27 +26,29 @@ Before you begin, ensure you have the following installed on your system:
 1. Clone this repository to your local machine:
    ```bash
    git clone https://github.com/EMMMABK/authorization-alif.git
-
+   ```
 2. Navigation
    ```bash
    cd authorization-alif
-
+   ```
 3. Install the required packages
    ```bash
    pip install -r requirements.txt
-
+   ```
 ## 3. DataBase SetUp
 By default, this project uses SQLite as the database. You can change the database settings in settings.py.
 * Apply database migrations:
 ```bash
 python manage.py migrate
+```
 * Create a superuser for admin access:
 ```bash
 python manage.py createsuperuser
+```
 * Start the development server:
 ```bash
 python manage.py runserver
-
+```
 ## 4. API Endpoints
 The project provides the following API endpoints:
 
@@ -91,7 +93,7 @@ Please note: It's important to keep your SECRET_KEY and other sensitive informat
 Feel free to customize this README.md to suit your project's specific requirements, and add any additional information or instructions as necessary.
 
 
-Make sure to replace `"https://github.com/EMMMABK/authorization-alif.git"` with the actual URL of your project's repository if it's hosted on a platform like GitHub. Additionally, customize any other parts of the README to match your project's specific needs.
+Make sure to replace ```bash"https://github.com/EMMMABK/authorization-alif.git"``` with the actual URL of your project's repository if it's hosted on a platform like GitHub. Additionally, customize any other parts of the README to match your project's specific needs.
 
 
 
