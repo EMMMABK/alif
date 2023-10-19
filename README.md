@@ -27,19 +27,24 @@ Before you begin, ensure you have the following installed on your system:
    ```bash
    git clone https://github.com/EMMMABK/authorization-alif.git
 
-### Navigation
-1. cd authorization-alif
+2. Navigation
+   ```bash
+   cd authorization-alif
 
-### Install the required packages
-1. pip install -r requirements.txt
+3. Install the required packages
+   ```bash
+   pip install -r requirements.txt
 
 ## 3. DataBase SetUp
 By default, this project uses SQLite as the database. You can change the database settings in settings.py.
-### Apply database migrations:
+* Apply database migrations:
+```bash
 python manage.py migrate
-### Create a superuser for admin access:
+* Create a superuser for admin access:
+```bash
 python manage.py createsuperuser
-### Start the development server:
+* Start the development server:
+```bash
 python manage.py runserver
 
 ## 4. API Endpoints
