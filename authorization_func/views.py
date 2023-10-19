@@ -1,3 +1,5 @@
+from rest_framework.generics import ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -6,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from django.core.mail import send_mail
 from .models import User
+from rest_framework.pagination import PageNumberPagination
 import random
 import string
 from .serializers import (
@@ -14,6 +17,7 @@ from .serializers import (
     EmailConfirmationSerializer,
     PasswordChangeSerializer,
     PasswordResetSerializer,
+    UserUpdateSerializer,
 )
 
 
@@ -89,3 +93,23 @@ class PasswordReset(APIView):
         # Включая проверку на интервал в 2 минуты
         # Отправка OTP-кода на почту
         return Response({'message': 'Password reset OTP code sent'}, status=status.HTTP_200_OK)
+
+class UserUpdateView(UpdateAPIView):
+    serializer_class = UserUpdateSerializer
+    queryset = User.objects.all()
+
+from rest_framework.pagination import PageNumberPagination
+
+class UserListView(ListAPIView):
+    serializer_class = UserSerializer
+    queryset = User.objects.all().order_by('name')  
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['name']
+    ordering_fields = ['specialty', 'graduation_year', 'location']
+    pagination_class = PageNumberPagination
+
+
+
+class UserDetailView(RetrieveAPIView):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()

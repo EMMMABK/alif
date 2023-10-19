@@ -34,6 +34,23 @@ class User(AbstractBaseUser):
     password = models.CharField(max_length=128)
     repeat_password = models.CharField(max_length=128, default='')
 
+    photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
+
+    university = models.CharField(max_length=255, blank=True)
+    faculty = models.CharField(max_length=255, blank=True)
+    specialty = models.CharField(max_length=255, blank=True)
+    graduation_year = models.PositiveIntegerField(null=True, blank=True)
+
+    email = models.EmailField(unique=True)
+    phone_number = models.CharField(max_length=15)
+    social_links = models.TextField(blank=True)
+
+    workplace = models.CharField(max_length=255, blank=True)
+    position = models.CharField(max_length=255, blank=True)
+    
+    short_info = models.TextField(blank=True)
+    achievements = models.TextField(blank=True)
+
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'

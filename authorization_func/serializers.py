@@ -34,3 +34,24 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'name', 'surname', 'phone_number', 'photo',
+                  'university', 'faculty', 'specialty', 'graduation_year',
+                  'email', 'phone_number', 'social_links',
+                  'workplace', 'position', 'short_info', 'achievements')
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('name', 'surname', 'photo', 'university', 'faculty', 'specialty', 'graduation_year',
+                  'email', 'phone_number', 'social_links',
+                  'workplace', 'position', 'short_info', 'achievements')
+
+class UserFilterSerializer(serializers.Serializer):
+    name = serializers.CharField(required=False)
+    specialty = serializers.CharField(required=False)
+    education_year = serializers.IntegerField(required=False)
+    location = serializers.CharField(required=False)
