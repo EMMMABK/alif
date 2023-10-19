@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'authorization_func',
-    'rest_framework'
+    'rest_framework',
+    'news_func',
 ]
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
