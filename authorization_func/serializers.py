@@ -1,10 +1,22 @@
 from rest_framework import serializers
 from .models import User
+from rest_framework_jwt.settings import api_settings
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'email', 'name', 'surname', 'phone_number')
+
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+        payload = jwt_payload_handler(user)
+        token = jwt_encode_handler(payload)
+        user.token = token  
+        user.save()
+        return user
+
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     repeat_password = serializers.CharField(write_only=True)
