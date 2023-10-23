@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import datetime
+import os
+from authorization_alif import secrets
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -72,8 +74,10 @@ REST_FRAMEWORK = {
     ],
 }
 
+JWT_SECRET_KEY = getattr(secrets, "JWT_SECRET_KEY", "default_secret_key")
+
 JWT_AUTH = {
-    'JWT_SECRET_KEY': 'ваш_секретный_ключ',
+    'JWT_SECRET_KEY': JWT_SECRET_KEY,
     'JWT_ALGORITHM': 'HS256',
     'JWT_ALLOW_REFRESH': True,
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
