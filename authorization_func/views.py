@@ -1,4 +1,3 @@
-from rest_framework_jwt.views import obtain_jwt_token 
 from rest_framework.generics import ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
@@ -27,15 +26,16 @@ def generate_otp_code(length=6):
     return ''.join(random.choice(characters) for _ in range(length))
 
 
-
 class UserLogin(APIView):
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
+        # Проверка введенных данных и аутентификация пользователя
         user = User.objects.filter(email=email).first()
         if user and user.check_password(password):
-            token = obtain_jwt_token(user)
-            return Response({'token': token, 'message': 'Login successful'}, status=status.HTTP_200_OK)
+            # Создание и возврат токена (если используется TokenAuthentication)
+            # Вам также может потребоваться создать и вернуть OTP-код
+            return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -57,7 +57,11 @@ class EmailConfirmation(APIView):
         serializer = EmailConfirmationSerializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data['email']
+
+            # Генерируйте OTP-код
             otp_code = generate_otp_code()
+
+            # Отправка письма с OTP-кодом
             subject = 'OTP Code Confirmation'
             message = f'Your OTP Code is: {otp_code}'
             from_email = 'test@example.com'  # Замените на свой адрес электронной почты
@@ -85,6 +89,9 @@ class PasswordChange(APIView):
 class PasswordReset(APIView):
     def post(self, request):
         email = request.data.get('email')
+        # Логика для отправки OTP-кода на указанную почту для сброса пароля
+        # Включая проверку на интервал в 2 минуты
+        # Отправка OTP-кода на почту
         return Response({'message': 'Password reset OTP code sent'}, status=status.HTTP_200_OK)
 
 class UserUpdateView(UpdateAPIView):
