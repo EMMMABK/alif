@@ -43,9 +43,9 @@ INSTALLED_APPS = [
     'drf_yasg',
     'rest_framework_simplejwt',
 ]
+
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-
+ 
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),

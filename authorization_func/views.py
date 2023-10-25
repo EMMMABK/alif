@@ -21,11 +21,9 @@ from .serializers import (
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-
 def generate_otp_code(length=6):
     characters = string.digits
     return ''.join(random.choice(characters) for _ in range(length))
-
 
 class UserLogin(TokenObtainPairView):
     def post(self, request):
@@ -33,9 +31,13 @@ class UserLogin(TokenObtainPairView):
         password = request.data.get('password')
         user = User.objects.filter(email=email).first()
         if user and user.check_password(password):
-            return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
+            if not user.email_confirmed:
+                return Response({'message': 'Email not confirmed. Please provide OTP code for confirmation.'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 class UserRegistration(CreateAPIView):
     serializer_class = UserRegistrationSerializer
@@ -47,28 +49,30 @@ class UserRegistration(CreateAPIView):
         if password != repeat_password:
             return Response({'message': 'Passwords do not match'}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save()
+        user = serializer.save()
+        otp_code = generate_otp_code()
+
+        subject = 'OTP Code Confirmation'
+        message = f'Your OTP Code is: {otp_code}'
+        from_email = 'sorana6950@wisnick.com'  # Замените на свой адрес электронной почты
+        recipient_list = [user.email]
+        send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+
+        return Response({'message': 'Registration successful. OTP code sent for email confirmation.'}, status=status.HTTP_201_CREATED)
 
 
 class EmailConfirmation(APIView):
     def post(self, request):
-        serializer = EmailConfirmationSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data['email']
-
-            # Генерируйте OTP-код
-            otp_code = generate_otp_code()
-
-            # Отправка письма с OTP-кодом
-            subject = 'OTP Code Confirmation'
-            message = f'Your OTP Code is: {otp_code}'
-            from_email = 'test@example.com'  # Замените на свой адрес электронной почты
-            recipient_list = [email]
-            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
-
-            return Response({'message': 'OTP code sent'}, status=status.HTTP_200_OK)
+        otp_code = request.data.get('otp_code')
+        if not otp_code:
+            return Response({'message': 'Требуется код OTP.'}, status=status.HTTP_400_BAD_REQUEST)
+        user = User.objects.filter(email_confirmation_code=otp_code, email_confirmed=False).first()
+        if user:
+            user.email_confirmed = True
+            user.save()
+            return Response({'message': 'Email подтвержден. Теперь вы можете войти.'}, status=status.HTTP_200_OK)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'Неверный код OTP.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PasswordChange(APIView):
@@ -87,16 +91,11 @@ class PasswordChange(APIView):
 class PasswordReset(APIView):
     def post(self, request):
         email = request.data.get('email')
-        # Логика для отправки OTP-кода на указанную почту для сброса пароля
-        # Включая проверку на интервал в 2 минуты
-        # Отправка OTP-кода на почту
         return Response({'message': 'Password reset OTP code sent'}, status=status.HTTP_200_OK)
 
 class UserUpdateView(UpdateAPIView):
     serializer_class = UserUpdateSerializer
     queryset = User.objects.all()
-
-from rest_framework.pagination import PageNumberPagination
 
 class UserListView(ListAPIView):
     serializer_class = UserSerializer
@@ -105,8 +104,6 @@ class UserListView(ListAPIView):
     search_fields = ['name']
     ordering_fields = ['specialty', 'graduation_year', 'location']
     pagination_class = PageNumberPagination
-
-
 
 class UserDetailView(RetrieveAPIView):
     serializer_class = UserSerializer

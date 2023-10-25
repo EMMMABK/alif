@@ -31,6 +31,7 @@ class User(AbstractBaseUser):
     phone_number = models.CharField(max_length=15)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    email_confirmation_code = models.CharField(max_length=6, null=True, blank=True)
     password = models.CharField(max_length=128)
     repeat_password = models.CharField(max_length=128, default='')
 
@@ -50,6 +51,8 @@ class User(AbstractBaseUser):
     
     short_info = models.TextField(blank=True)
     achievements = models.TextField(blank=True)
+
+    email_confirmed = models.BooleanField(default=False)  
 
     objects = CustomUserManager()
 

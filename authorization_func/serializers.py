@@ -26,7 +26,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 class EmailConfirmationSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    otp_code = serializers.CharField(max_length=6)  
 
 class PasswordChangeSerializer(serializers.Serializer):
     old_password = serializers.CharField()
