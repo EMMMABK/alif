@@ -19,6 +19,7 @@ from .serializers import (
     PasswordResetSerializer,
     UserUpdateSerializer,
 )
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 
 def generate_otp_code(length=6):
@@ -26,15 +27,12 @@ def generate_otp_code(length=6):
     return ''.join(random.choice(characters) for _ in range(length))
 
 
-class UserLogin(APIView):
+class UserLogin(TokenObtainPairView):
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
-        # Проверка введенных данных и аутентификация пользователя
         user = User.objects.filter(email=email).first()
         if user and user.check_password(password):
-            # Создание и возврат токена (если используется TokenAuthentication)
-            # Вам также может потребоваться создать и вернуть OTP-код
             return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
