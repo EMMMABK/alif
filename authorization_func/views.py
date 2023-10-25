@@ -52,6 +52,9 @@ class UserRegistration(CreateAPIView):
         user = serializer.save()
         otp_code = generate_otp_code()
 
+        user.email_confirmation_code = otp_code
+        user.save()
+
         subject = 'OTP Code Confirmation'
         message = f'Your OTP Code is: {otp_code}'
         from_email = 'sorana6950@wisnick.com'  # Замените на свой адрес электронной почты
@@ -64,6 +67,7 @@ class UserRegistration(CreateAPIView):
 class EmailConfirmation(APIView):
     def post(self, request):
         otp_code = request.data.get('otp_code')
+        
         if not otp_code:
             return Response({'message': 'Требуется код OTP.'}, status=status.HTTP_400_BAD_REQUEST)
         user = User.objects.filter(email_confirmation_code=otp_code, email_confirmed=False).first()
