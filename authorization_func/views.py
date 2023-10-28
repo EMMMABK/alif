@@ -92,15 +92,21 @@ class EmailConfirmation(APIView):
 
 
 class PasswordChange(APIView):
-    @permission_classes([IsAuthenticated])
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         user = request.user
         old_password = request.data.get('old_password')
         new_password = request.data.get('new_password')
+        repeat_new_password = request.data.get('repeat_new_password')
+
         if user.check_password(old_password):
-            user.set_password(new_password)
-            user.save()
-            return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
+            if new_password == repeat_new_password:
+                user.set_password(new_password)
+                user.save()
+                return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'New password and repeat password do not match'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'message': 'Invalid old password'}, status=status.HTTP_401_UNAUTHORIZED)
 
