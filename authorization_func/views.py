@@ -8,7 +8,7 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from django.core.mail import send_mail
-from .models import User, AccessToken
+from .models import User
 from rest_framework.pagination import PageNumberPagination
 import random
 import string
@@ -40,9 +40,10 @@ class UserLogin(TokenObtainPairView):
                 access_token = str(refresh.access_token)
                 refresh_token = str(refresh)
                 
-                user.access_token = access_token
+                user.access_token = access_token  
                 user.refresh_token = refresh_token
                 user.save()
+
 
                 return Response({
                     'message': 'Login successful',
