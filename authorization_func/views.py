@@ -1,3 +1,4 @@
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.generics import ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
@@ -7,7 +8,7 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from django.core.mail import send_mail
-from .models import User
+from .models import User, AccessToken
 from rest_framework.pagination import PageNumberPagination
 import random
 import string
@@ -38,6 +39,11 @@ class UserLogin(TokenObtainPairView):
                 refresh = RefreshToken.for_user(user)
                 access_token = str(refresh.access_token)
                 refresh_token = str(refresh)
+                
+                user.access_token = access_token
+                user.refresh_token = refresh_token
+                user.save()
+
                 return Response({
                     'message': 'Login successful',
                     'access_token': access_token,
@@ -90,9 +96,9 @@ class EmailConfirmation(APIView):
         else:
             return Response({'message': 'Неверный код OTP.'}, status=status.HTTP_400_BAD_REQUEST)
 
-
 class PasswordChange(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
 
     def post(self, request):
         user = request.user
@@ -128,6 +134,12 @@ class UserListView(ListAPIView):
     search_fields = ['name']
     ordering_fields = ['specialty', 'graduation_year', 'location']
     pagination_class = PageNumberPagination
+
+    def get_serializer(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_authenticated:
+            self.serializer_class.Meta.fields = ('id', 'email', 'name', 'surname', 'phone_number', 'access_token')
+        return super().get_serializer(*args, **kwargs)
 
 class UserDetailView(RetrieveAPIView):
     serializer_class = UserSerializer

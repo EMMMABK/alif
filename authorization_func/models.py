@@ -25,6 +25,8 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 class User(AbstractBaseUser):
+    access_token = models.CharField(max_length=255, null=True, blank=True)
+    refresh_token = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=255)
     surname = models.CharField(max_length=255)
@@ -57,3 +59,10 @@ class User(AbstractBaseUser):
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
+
+class AccessToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"AccessToken for {self.user.username}"
