@@ -20,6 +20,7 @@ from .serializers import (
     UserUpdateSerializer,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 def generate_otp_code(length=6):
     characters = string.digits
@@ -34,7 +35,18 @@ class UserLogin(TokenObtainPairView):
             if not user.email_confirmed:
                 return Response({'message': 'Email not confirmed. Please provide OTP code for confirmation.'}, status=status.HTTP_200_OK)
             else:
-                return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
+                refresh = RefreshToken.for_user(user)
+                access_token = str(refresh.access_token)
+                refresh_token = str(refresh)
+                return Response({
+                    'message': 'Login successful',
+                    'access_token': access_token,
+                    'refresh_token': refresh_token,
+                    'name': user.name,
+                    'surname': user.surname,
+                    'email': user.email,
+                    'phone_number': user.phone_number,
+                }, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -100,6 +112,8 @@ class PasswordReset(APIView):
 class UserUpdateView(UpdateAPIView):
     serializer_class = UserUpdateSerializer
     queryset = User.objects.all()
+    permission_classes = [IsAuthenticated]
+
 
 class UserListView(ListAPIView):
     serializer_class = UserSerializer
