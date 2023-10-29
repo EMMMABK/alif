@@ -33,8 +33,28 @@ class PasswordChangeSerializer(serializers.Serializer):
     new_password = serializers.CharField()
     repeat_new_password = serializers.CharField()
 
+    def validate(self, data):
+        user = self.context['request'].user
+
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
+        repeat_new_password = data.get('repeat_new_password')
+
+        if not user.check_password(old_password):
+            raise serializers.ValidationError({'message': 'Invalid old password'})
+
+        if new_password != repeat_new_password:
+            raise serializers.ValidationError({'message': 'New passwords do not match'})
+
+        return data
+
+
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+class PasswordResetVerifySerializer(serializers.Serializer):
+    otp_code = serializers.CharField(max_length=6)
+    
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:

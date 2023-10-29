@@ -4,11 +4,13 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.contrib.auth.tokens import default_token_generator
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from django.core.mail import send_mail
 from .models import User
+from .models import PasswordResetToken  
 from rest_framework.pagination import PageNumberPagination
 import random
 import string
@@ -22,6 +24,7 @@ from .serializers import (
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import update_session_auth_hash
 
 def generate_otp_code(length=6):
     characters = string.digits
@@ -97,30 +100,83 @@ class EmailConfirmation(APIView):
         else:
             return Response({'message': 'Неверный код OTP.'}, status=status.HTTP_400_BAD_REQUEST)
 
-class PasswordChange(APIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [TokenAuthentication]
 
-    def post(self, request):
+class PasswordChange(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
         user = request.user
         old_password = request.data.get('old_password')
         new_password = request.data.get('new_password')
         repeat_new_password = request.data.get('repeat_new_password')
 
-        if user.check_password(old_password):
-            if new_password == repeat_new_password:
-                user.set_password(new_password)
-                user.save()
-                return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
-            else:
-                return Response({'message': 'New password and repeat password do not match'}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'message': 'Invalid old password'}, status=status.HTTP_401_UNAUTHORIZED)
+        # Проверить, что старый пароль совпадает с текущим паролем пользователя
+        if not user.check_password(old_password):
+            return Response({'message': 'Старый пароль неверен'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Проверить, что новые пароли совпадают
+        if new_password != repeat_new_password:
+            return Response({'message': 'Новые пароли не совпадают'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Установить новый пароль для пользователя
+        user.set_password(new_password)
+        user.save()
+
+        return Response({'message': 'Пароль успешно изменен'}, status=status.HTTP_200_OK)
 
 class PasswordReset(APIView):
     def post(self, request):
         email = request.data.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'message': 'Пользователь с этим email не найден'}, status=status.HTTP_400_BAD_REQUEST)
+        def generate_random_otp(length=6):
+            digits = string.digits  
+            otp_code = ''.join(random.choice(digits) for _ in range(length))
+            return otp_code
+        # Создайте и сохраните OTP-код
+        otp_code = generate_random_otp()
+        user.password_reset_token = otp_code
+        user.save()
+
+        subject = 'Password Reset OTP Code'
+        message = f'Your OTP Code for password reset is: {otp_code}'
+        from_email = 'test05545350@gmail.com'  # Замените на свой адрес электронной почты
+        recipient_list = [user.email]
+        send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+
         return Response({'message': 'Password reset OTP code sent'}, status=status.HTTP_200_OK)
+        
+class PasswordResetVerify(APIView):
+    def post(self, request):
+        otp_code = request.data.get('otp_code')
+
+        try:
+            user = User.objects.get(password_reset_token=otp_code)
+        except User.DoesNotExist:
+            return Response({'message': 'Неверный OTP-код'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if user.password_reset_token:
+            def generate_random_password(length=12):
+                characters = string.ascii_letters + string.digits
+                password = ''.join(random.choice(characters) for _ in range(length))
+                return password
+
+            new_password = generate_random_password()
+            user.set_password(new_password)
+            user.password_reset_token = None  
+            user.save()
+
+            subject = 'New Password'
+            message = f'Your new password is: {new_password}'
+            from_email = 'test05545350@gmail.com'
+            recipient_list = [user.email]
+            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+
+            return Response({'message': 'Password successfully reset. New password sent to your email.'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'Неверный OTP-код или срок действия OTP-кода истек'}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserUpdateView(UpdateAPIView):
     serializer_class = UserUpdateSerializer

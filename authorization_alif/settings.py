@@ -74,6 +74,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'authorization_func.middleware.BearerTokenMiddleware',
 ]
 
 ROOT_URLCONF = 'authorization_alif.urls'
