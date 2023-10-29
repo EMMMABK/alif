@@ -70,7 +70,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         fields = ('name', 'surname', 'photo', 'university', 'faculty', 'specialty', 'graduation_year',
                   'email', 'phone_number', 'social_links',
                   'workplace', 'position', 'short_info', 'achievements')
-
+                  
 class UserFilterSerializer(serializers.Serializer):
     name = serializers.CharField(required=False)
     specialty = serializers.CharField(required=False)

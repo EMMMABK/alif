@@ -4,8 +4,10 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+import requests
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework.generics import CreateAPIView
+from rest_framework import permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from django.core.mail import send_mail
@@ -25,6 +27,9 @@ from .serializers import (
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import update_session_auth_hash
+from rest_framework.generics import RetrieveUpdateAPIView
+
+
 
 def generate_otp_code(length=6):
     characters = string.digits
@@ -102,27 +107,22 @@ class EmailConfirmation(APIView):
 
 
 class PasswordChange(UpdateAPIView):
+    serializer_class = PasswordChangeSerializer
     permission_classes = [IsAuthenticated]
-
+    
     def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
         user = request.user
-        old_password = request.data.get('old_password')
-        new_password = request.data.get('new_password')
-        repeat_new_password = request.data.get('repeat_new_password')
 
-        # Проверить, что старый пароль совпадает с текущим паролем пользователя
-        if not user.check_password(old_password):
-            return Response({'message': 'Старый пароль неверен'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Проверить, что новые пароли совпадают
-        if new_password != repeat_new_password:
-            return Response({'message': 'Новые пароли не совпадают'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Установить новый пароль для пользователя
+        # Получите новый пароль из сериализатора
+        new_password = serializer.validated_data['new_password']
+        # Установите новый пароль для пользователя
         user.set_password(new_password)
         user.save()
 
-        return Response({'message': 'Пароль успешно изменен'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Password successfully changed'})
 
 class PasswordReset(APIView):
     def post(self, request):
@@ -178,12 +178,6 @@ class PasswordResetVerify(APIView):
         else:
             return Response({'message': 'Неверный OTP-код или срок действия OTP-кода истек'}, status=status.HTTP_400_BAD_REQUEST)
 
-class UserUpdateView(UpdateAPIView):
-    serializer_class = UserUpdateSerializer
-    queryset = User.objects.all()
-    permission_classes = [IsAuthenticated]
-
-
 class UserListView(ListAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all().order_by('name')  
@@ -197,6 +191,18 @@ class UserListView(ListAPIView):
         if user.is_authenticated:
             self.serializer_class.Meta.fields = ('id', 'email', 'name', 'surname', 'phone_number', 'access_token')
         return super().get_serializer(*args, **kwargs)
+
+
+class UserUpdateView(RetrieveUpdateAPIView):
+    serializer_class = UserUpdateSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self):
+        return self.request.user
+
+    def perform_update(self, serializer):
+        serializer.save()
+
 
 class UserDetailView(RetrieveAPIView):
     serializer_class = UserSerializer
