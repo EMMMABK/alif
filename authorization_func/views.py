@@ -23,6 +23,7 @@ from .serializers import (
     PasswordChangeSerializer,
     PasswordResetSerializer,
     UserUpdateSerializer,
+    UserProfileSerializer,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -207,3 +208,7 @@ class UserUpdateView(RetrieveUpdateAPIView):
 class UserDetailView(RetrieveAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
+
+class UserProfileDetailView(RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer

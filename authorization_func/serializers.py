@@ -76,3 +76,12 @@ class UserFilterSerializer(serializers.Serializer):
     specialty = serializers.CharField(required=False)
     education_year = serializers.IntegerField(required=False)
     location = serializers.CharField(required=False)
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'id', 'email', 'name', 'surname', 'phone_number',
+            'university', 'faculty', 'specialty', 'graduation_year',
+            'social_links', 'workplace', 'position', 'short_info', 'achievements'
+        )
