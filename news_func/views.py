@@ -21,12 +21,12 @@ class CanCreateNews(permissions.BasePermission):
 class CustomLimitOffsetPagination(LimitOffsetPagination):
     default_limit = 10  
     max_limit = 50  
-
-class NewsListCreateView(generics.ListCreateAPIView):
+    
+class NewsListView(generics.ListAPIView):
     queryset = News.objects.all().order_by('-created_at')
     serializer_class = NewsSerializer
-    pagination_class = CustomLimitOffsetPagination  
-    
+    pagination_class = CustomLimitOffsetPagination
+
 class NewsRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = News.objects.all()
     serializer_class = NewsSerializer
@@ -35,6 +35,7 @@ class NewsCreateView(generics.CreateAPIView):
     queryset = News.objects.all()
     serializer_class = NewsCreateSerializer
     permission_classes = [CanCreateNews]
+    
 
 class NewsDeleteView(generics.DestroyAPIView):
     queryset = News.objects.all()
