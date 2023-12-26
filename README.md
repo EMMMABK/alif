@@ -95,6 +95,5 @@ Please note: It's important to keep your SECRET_KEY and other sensitive informat
 Feel free to customize this README.md to suit your project's specific requirements, and add any additional information or instructions as necessary.
 
 Make sure to replace `"https://github.com/EMMMABK/authorization-alif.git"` with the actual URL of your project's repository if it's hosted on a platform like GitHub. Additionally, customize any other parts of the README to match your project's specific needs.
-```
 
-I've added emojis to various sections of the documentation to make it more engaging and visually appealing!
+
